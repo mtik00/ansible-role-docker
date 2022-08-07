@@ -3,8 +3,16 @@
 
 - name: Verify
   hosts: all
-  gather_facts: false
+  gather_facts: true
+  vars:
+    apt_cache_valid_time: 300
   tasks:
-    - name: Example assertion
+    - name: Find docker binary
+      ansible.builtin.stat:
+        path: /usr/bin/docker
+      register: docker_binary
+
+    - name: Ensure docker binary exists
       ansible.builtin.assert:
-        that: true
+        that:
+          - docker_binary.stat.exists

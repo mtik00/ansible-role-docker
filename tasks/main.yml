@@ -1,1 +1,71 @@
 ---
+
+- name: Install required system packages
+  become: true
+  ansible.builtin.apt:
+    state: present
+    cache_valid_time: "{{ apt_cache_valid_time }}"
+    name:
+      - apt-transport-https
+      - aptitude
+      - ca-certificates
+      - curl
+
+# NOTE: This is a bit sketchy and untested.  I can't figure out why the community
+# version of update-alternatives constantly failed, so there's this.  Also,
+# this only appears to be needed in WSL, not regular Ubuntu.
+- name: Get stats of the iptables link
+  ansible.builtin.stat:
+    path: /etc/alternatives/iptables
+  register: iptables_symlink
+
+- name: See if /usr/sbin/iptables-legacy exists
+  ansible.builtin.stat:
+    path: /usr/sbin/iptables-legacy
+  register: iptables_legacy
+
+- name: update alternatives
+  become: true
+  ansible.builtin.command: update-alternatives --set iptables /usr/sbin/iptables-legacy
+  when:
+    - lookup('env','WSL_DISTRO_NAME') != ""
+    - iptables_symlink.stat.islnk is not defined or iptables_symlink.stat.lnk_target != "/usr/sbin/iptables-legacy"
+    - iptables_legacy.stat.exists
+
+- name: Add docker repo
+  become: true
+  block:
+    - name: docker | get the key  # noqa command-instead-of-module
+      ansible.builtin.shell: curl -sS https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor --output {{ docker_gpg_key }}
+      args:
+        creates: "{{ docker_gpg_key }}"
+
+    - name: get arch
+      ansible.builtin.command: dpkg --print-architecture
+      register: dpkg_arch_shell
+      changed_when: false
+
+    - name: set arch fact
+      ansible.builtin.set_fact:
+        dpkg_arch: "{{ dpkg_arch_shell.stdout }}"
+
+    - name: docker | apt source
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ dpkg_arch }} signed-by={{ docker_gpg_key }}] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable"
+        update_cache: true
+        state: present
+
+- name: Update apt and install docker-ce
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    name: docker-ce
+    state: present
+
+- name: Add user to docker group
+  become: true
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+    append: true
+    groups:
+      - docker

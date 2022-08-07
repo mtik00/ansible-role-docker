@@ -5,6 +5,7 @@
   vars:
     apt_cache_valid_time: 300
     docker_gpg_key: /usr/share/keyrings/docker-archive-keyring.gpg
+    nameserver: 8.8.8.8
   tasks:
     - name: "Include mtik00.docker"
       ansible.builtin.include_role:

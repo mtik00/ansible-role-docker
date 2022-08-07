@@ -9,6 +9,11 @@ platforms:
     pre_build_image: true
 provisioner:
   name: ansible
+  env:
+    # We can't reliably test this on WSL2 because we need to make modifications
+    # to resolv.conf what are not compatible (namely `chattr +i /etc/resolv.conf`).
+    WSL_DISTRO_NAME: ""
+
 verifier:
   name: ansible
 

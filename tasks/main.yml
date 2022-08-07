@@ -1,5 +1,8 @@
 ---
 
+- name: set WSL fact
+  ansible.builtin.include_tasks: facts.yml
+
 - name: Install required system packages
   become: true
   ansible.builtin.apt:
@@ -28,7 +31,7 @@
   become: true
   ansible.builtin.command: update-alternatives --set iptables /usr/sbin/iptables-legacy
   when:
-    - lookup('env','WSL_DISTRO_NAME') != ""
+    - is_wsl2
     - iptables_symlink.stat.islnk is not defined or iptables_symlink.stat.lnk_target != "/usr/sbin/iptables-legacy"
     - iptables_legacy.stat.exists
 
@@ -69,3 +72,46 @@
     append: true
     groups:
       - docker
+
+- name: Fix resolv.conf in WSL2
+  become: true
+  when: is_wsl2
+  block:
+    - name: Check resolv.conf
+      ansible.builtin.stat:
+        path: /etc/resolv.conf
+      register: resolv_conf
+
+    - name: output stat
+      ansible.builtin.debug:
+        msg: "{{ resolv_conf }}"
+
+    - name: Delete the resolv.conf symlink
+      ansible.builtin.file:
+        path: /etc/resolv.conf
+        state: absent
+      when: resolv_conf.stat.islnk
+
+    - name: Fix resolv.conf
+      ansible.builtin.copy:
+        dest: /etc/resolv.conf
+        mode: '0755'
+        content: |
+          # WARNING: This file is controlled by Ansible
+          nameserver {{ nameserver }}
+
+    - name: Esnure resolv.conf is immutable
+      when: "'immutable' not in resolv_conf.stat.attributes"
+      ansible.builtin.file:
+        path: /etc/resolv.conf
+        mode: '0755'
+        attr: +i
+
+    - name: Fix wsl.conf
+      ansible.builtin.copy:
+        dest: /etc/wsl.conf
+        mode: '0755'
+        content: |
+          # WARNING: This file is controlled by Ansible
+          [network]
+          generateResolvConf = false

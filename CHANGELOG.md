@@ -1,3 +1,9 @@
+## 0.3.2 (2022-08-21)
+
+### Fix
+
+- reworking immutability of resolv.conf
+
 ## 0.3.1 (2022-08-21)
 
 ### Fix

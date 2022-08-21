@@ -86,6 +86,15 @@
       ansible.builtin.debug:
         msg: "{{ resolv_conf }}"
 
+    - name: Esnure resolv.conf is mutable
+      become: true
+      when: "'immutable' in resolv_conf.stat.attributes"
+      ansible.builtin.file:
+        path: /etc/resolv.conf
+        mode: '0644'
+        attr: -i
+      changed_when: false
+
     - name: Delete the resolv.conf symlink
       ansible.builtin.file:
         path: /etc/resolv.conf
@@ -95,7 +104,7 @@
     - name: Fix resolv.conf
       ansible.builtin.copy:
         dest: /etc/resolv.conf
-        mode: '0755'
+        mode: '0644'
         content: |
           # WARNING: This file is controlled by Ansible
           nameserver {{ nameserver }}
@@ -104,8 +113,9 @@
       when: "'immutable' not in resolv_conf.stat.attributes"
       ansible.builtin.file:
         path: /etc/resolv.conf
-        mode: '0755'
+        mode: '0644'
         attr: +i
+      changed_when: false
 
     - name: Fix wsl.conf
       ansible.builtin.copy:

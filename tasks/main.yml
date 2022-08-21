@@ -19,7 +19,7 @@
 # this only appears to be needed in WSL, not regular Ubuntu.
 - name: Get stats of the iptables link
   ansible.builtin.stat:
-    path: /etc/alternatives/iptables
+    path: /etc/alternatives/iptables-alterntative
   register: iptables_symlink
 
 - name: See if /usr/sbin/iptables-legacy exists

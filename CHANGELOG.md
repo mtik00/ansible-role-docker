@@ -1,3 +1,9 @@
+## 0.3.3 (2023-01-15)
+
+### Fix
+
+- check remote host for WSL2, not local
+
 ## 0.3.2 (2022-08-21)
 
 ### Fix

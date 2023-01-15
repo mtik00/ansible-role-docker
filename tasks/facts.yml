@@ -1,8 +1,16 @@
 ---
+- name: Assume we're not using WSL2
+  ansible.builtin.set_fact:
+    is_wsl2: false
 
 - name: Check for WSL2
+  no_log: true
   ansible.builtin.set_fact:
-    is_wsl2: "{{ lookup('env','WSL_DISTRO_NAME') != '' }}"
+    is_wsl2: true
+  loop: "{{ lookup('ansible.builtin.dict', ansible_facts.env) }}"
+  when:
+    - "'WSL_DISTRO_NAME' in item.key"
+    - "item.value != ''"
 
 - name: WSL debug
   ansible.builtin.debug:

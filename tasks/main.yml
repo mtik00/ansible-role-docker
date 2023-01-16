@@ -13,6 +13,7 @@
       - aptitude
       - ca-certificates
       - curl
+      - gpg
 
 # NOTE: This is a bit sketchy and untested.  I can't figure out why the community
 # version of update-alternatives constantly failed, so there's this.  Also,

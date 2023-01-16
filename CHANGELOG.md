@@ -1,3 +1,9 @@
+## 0.4.0 (2023-01-16)
+
+### Feat
+
+- using os_family fact instead of assuming Ubuntu
+
 ## 0.3.4 (2023-01-16)
 
 ### Fix

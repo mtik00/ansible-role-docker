@@ -1,3 +1,9 @@
+## 0.4.1 (2023-02-19)
+
+### Fix
+
+- use different ansible vars for OS name
+
 ## 0.4.0 (2023-01-16)
 
 ### Feat

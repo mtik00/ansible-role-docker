@@ -40,7 +40,7 @@
   become: true
   block:
     - name: docker | get the key  # noqa command-instead-of-module
-      ansible.builtin.shell: curl -sS https://download.docker.com/linux/{{ ansible_os_family | lower }}/gpg | gpg --dearmor --output {{ docker_gpg_key }}
+      ansible.builtin.shell: curl -sS https://download.docker.com/linux/{{ ansible_lsb.id | lower }}/gpg | gpg --dearmor --output {{ docker_gpg_key }}
       args:
         creates: "{{ docker_gpg_key }}"
 
@@ -55,7 +55,7 @@
 
     - name: docker | apt source
       ansible.builtin.apt_repository:
-        repo: "deb [arch={{ dpkg_arch }} signed-by={{ docker_gpg_key }}] https://download.docker.com/linux/{{ ansible_os_family | lower }} {{ ansible_lsb.codename }} stable"
+        repo: "deb [arch={{ dpkg_arch }} signed-by={{ docker_gpg_key }}] https://download.docker.com/linux/{{ ansible_lsb.id | lower }} {{ ansible_lsb.codename | lower }} stable"
         update_cache: true
         state: present
 
